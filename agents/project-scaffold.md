@@ -114,7 +114,7 @@ projectName/
 {
   "status": "success",
   "summary": "已创建项目 prj-name: 目录结构+配置+首页",
-  "filesCreated": [
+  "filesChanged": [
     "app.js", "app.json", "app.wxss",
     "pages/index/index.js", "pages/index/index.wxml", "pages/index/index.wxss", "pages/index/index.json",
     "project.config.json", "package.json", ".gitignore", "tests/setup.js", "jest.config.js"
@@ -122,7 +122,7 @@ projectName/
   "keyFindings": [],
   "testResults": null,
   "projectReady": true,
-  "nextSteps": [
+  "nextAction": [
     "npm install",
     "用微信开发者工具打开项目",
     "如启用云开发: 在开发者工具中点击'云开发'开通",

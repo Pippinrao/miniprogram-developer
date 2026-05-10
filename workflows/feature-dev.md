@@ -15,6 +15,8 @@
   │     决策: 用户确认 → 阶段2
   │
   ├─ ► 阶段2: 并行开发 [子Agent: ui-page-builder + code-implementation]
+  │     注: code-implementation 内部执行TDD(写UT→失败→实现→通过→重构)，
+  │     因此UT测试在实现阶段同步完成。阶段3的test-design专为E2E场景设计。
   │     分支A [ui-page-builder]:
   │       输入: { designDoc.pages, designDoc.components, designDoc.componentLib }
   │       加载: agents/ui-page-builder.md + WXML/WXSS/组件库文档
@@ -27,11 +29,12 @@
   │     合并: 主Agent检查 UI/Logic 一致性(bindtap事件 vs JS方法)
   │     决策: 全部通过 → 阶段3, 否则补充修复
   │
-  ├─ ► 阶段3: 测试设计 [子Agent: test-design]
+  ├─ ► 阶段3: E2E测试设计 [子Agent: test-design]
   │     输入: { projectPath, scope, context: { analysisResult } }
   │     子Agent加载: agents/test-design.md + references/unit-test.md + references/e2e-testing.md
-  │     输出: { utCases, e2eScenarios }
-  │     决策: 用户确认测试用例 → 阶段4
+  │     注: UT已在阶段2由code-implementation完成。此阶段专注E2E场景设计。
+  │     输出: { e2eScenarios }（如需补充UT则另有utCases）
+  │     决策: 用户确认E2E测试用例 → 阶段4
   │
   ├─ ► 阶段4: E2E验证 [子Agent: test-execution, mode=e2e]
   │     输入: { projectPath, context: { testDesign: { e2eScenarios } } }
@@ -70,7 +73,8 @@
 **合并检查**:
 主Agent比对 uiOutput.eventBindings 和 code-implementation 实现的方法:
 - WXML 中 `bindtap="handleLogin"` → JS 中有 `handleLogin()` ✓
-- 不一致 → 启动补充 code-implementation 轮次修复
+- 比对方法: 1) 从 uiOutput.eventBindings 提取所有方法名 2) 检查 code-implementation 的 testResults 和 keyFindings 是否覆盖这些方法 3) 不一致 → 启动补充 code-implementation 轮次修复
+- 合并超时: 任一分支超过合理时间未返回 → 先返回的分支结果暂存，等待另一分支；双分支均超时 → 降级为串行执行（先UI后Logic）
 
 ### 阶段3: 测试设计 [主Agent → test-design]
 
@@ -140,3 +144,16 @@
 - [ ] 标准A
 - [ ] 标准B
 ```
+
+---
+
+## 错误处理
+
+| 场景 | 处理 |
+|------|------|
+| requirement-designer 返回 projectNotReady | 提示用户先完成项目初始化 |
+| ui-page-builder 和 code-implementation 并行结果冲突（bindtap vs 方法名不一致） | 以 code-implementation 的 JS 方法名为准，更新 uiOutput 的事件绑定 |
+| ui-page-builder 生成失败 | 检查设计文档中 pages/components 定义是否完整后重试 |
+| code-implementation 测试失败 | 迭代修复（最多3次）；超过则报告主Agent决定是否跳过失败用例 |
+| E2E 测试发现 UI/Logic 不一致 | 返回阶段2进行补充修复 |
+| 设计文档与最终实现不一致 | 更新设计文档标注"实际实现有偏差"并记录原因 |

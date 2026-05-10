@@ -2,13 +2,14 @@
 skill: miniprogram-developer
 version: 1.0.0
 updated: 2026-05-10
-depends: [reference-debugging, reference-cloud-development]
 provides: [错误码, 故障排查, errMsg, 常见错误]
 difficulty: beginner
 official: https://developers.weixin.qq.com/miniprogram/dev/api基础/报错码.html
 ---
 
 # 微信小程序错误码对照表
+
+> **来源说明**: 本文档编译自多个来源：微信开放平台服务端API（40001等）、小程序客户端API旧版（-1~-5）、云开发CloudBase SDK（-502001等）、社区经验。与官方最新 errno 体系（7位编码）格式不同，详见 [官方错误码文档](https://developers.weixin.qq.com/miniprogram/dev/framework/usability/PublicErrno.html)。本文档为**独立编译的参考资源**，非官方知识库直接产出。
 
 ## 微信小程序 API 错误码
 

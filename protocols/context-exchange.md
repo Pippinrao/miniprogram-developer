@@ -28,8 +28,11 @@
   "context": {
     "previousPhase": "前一阶段的摘要",
     "designDoc": "/path/to/design.md",
-    "userApproval": "用户确认的内容"
+    "userApproval": "用户确认的内容",
+    "existingCode": {"summary": "已有代码的结构化摘要", "path": "可选的文件路径"},
+    "focus": "cloudFunctions|pages|components|all（可选，聚焦领域）"
   },
+  "mode": "ut|e2e|both|incremental（test-execution 专用）",
   "expectedOutput": {
     "summary": true,
     "keyFindings": "≤5",
@@ -69,16 +72,16 @@
 {
   "status": "success|failure|partial",
   "summary": "一句话摘要（≤200字）",
-  "filesChanged": ["path/file1.js", "path/file2.wxml"],
+  "filesChanged": ["path/file1.js", "path/file2.wxml"],    // 修改或创建的文件路径列表。也可用 filesCreated 表示仅创建，filesAnalyzed 表示仅分析（code-analysis 用）
   "keyFindings": ["发现1", "发现2", "发现3"],
-  "testResults": {
+  "testResults": {              // 无测试的Agent可为 null
     "pass": 10,
     "fail": 0,
     "skip": 2,
     "coverage": "75%"
   },
-  "artifacts": ["/path/to/report.md", "/path/to/screenshot.png"],
-  "nextAction": "建议的下一步"
+  "artifacts": ["/path/to/report.md", "/path/to/screenshot.png"],  // 可选，无产物时为空数组
+  "nextAction": "建议的下一步"   // 可选，无建议时可为空字符串或省略
 }
 ```
 
@@ -112,7 +115,7 @@
     ↓
 阶段2 (测试设计) → testSpec 路径 + utCases + e2eScenarios
     ↓
-阶段3 (代码实现) → filesCreated + utResults
+阶段3 (代码实现) → filesChanged + utResults
     ↓
 阶段4 (E2E验证) → e2eResults
     ↓

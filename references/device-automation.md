@@ -2,7 +2,7 @@
 skill: miniprogram-developer
 version: 1.1.0
 updated: 2026-05-10
-depends: [reference-e2e-testing, reference-devtools-usage]
+depends: [e2e-testing]
 provides: [真机测试, 远程调试, Midscene, 云测, ADB, HDC]
 difficulty: advanced
 official: https://developers.weixin.qq.com/miniprogram/dev/devtools/debug.html
@@ -166,13 +166,20 @@ async function midsceneTest() {
 ### 3.3 在 CI/CD 中触发云测
 
 ```yaml
-# 云测通过微信开放平台 API 触发，不是通过 Automator
-# 参考: https://developers.weixin.qq.com/miniprogram/dev/devtools/cloudtest/
+# 云测通过微信 MiniTest 平台 API 触发
+# 接入文档: https://developers.weixin.qq.com/miniprogram/dev/devtools/cloudtest/
+# API 详细参数以官方文档为准，以下为示例框架
 - name: Trigger cloud test
   run: |
-    curl -X POST https://api.weixin.qq.com/wxa/cloudtest/commitsubmit?access_token=$TOKEN \
+    curl -X POST https://minitest.weixin.qq.com/thirdapi/plan \
       -H "Content-Type: application/json" \
-      -d '{"miniprogram_appid": "$APP_ID", "test_type": "monkey"}'
+      -d '{
+        "token": "${{ secrets.MINITEST_TOKEN }}",
+        "group_en_id": "${{ secrets.MINITEST_GROUP }}",
+        "test_type": 1,
+        "wx_version": 1,
+        "platforms": "android, ios"
+      }'
 ```
 
 ---
@@ -283,12 +290,16 @@ adb shell cmd connectivity set-mobile-data-enabled false  # 关闭移动数据
 
 ### 5.3 常见网络场景配置参考
 
-| 场景 | 下行带宽 | 上行带宽 | 延迟 |
-|------|----------|----------|------|
-| 2G | 15KB/s | 5KB/s | 500ms |
-| 3G | 50KB/s | 20KB/s | 200ms |
-| 4G | 500KB/s | 100KB/s | 50ms |
-| 弱WiFi | 100KB/s | 50KB/s | 100ms |
+> **数值来源**: 基于 Network Link Conditioner 标准预设和行业通用弱网络测试参数。开发者工具内置的网络模拟（2G/3G/4G/WiFi）为推荐首选。
+
+| 场景 | 下行带宽 (kbps) | 上行带宽 (kbps) | 延迟 (ms) | RTT |
+|------|----------------|----------------|-----------|-----|
+| 2G (GPRS) | 50 | 20 | 500 | 1000ms |
+| 3G (HSPA) | 350 | 100 | 100 | 200ms |
+| 4G (LTE) | 5000 | 1000 | 30 | 60ms |
+| 弱 WiFi | 1000 | 500 | 50 | 100ms |
+
+> 注: 开发者工具内置网络模拟使用标准 kbps 单位，非 KB/s。上表为 Network Link Conditioner 典型预设值。
 
 ### 5.4 弱网络测试检查点
 

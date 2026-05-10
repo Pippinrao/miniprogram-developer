@@ -115,7 +115,6 @@
 ```javascript
 const start = Date.now();
 await miniProgram.page.navigateTo('/pages/match/list/list');
-await miniProgram.page.waitForNavigation();
 await miniProgram.page.waitFor('[data-testid="match-card-0"]');
 const loadTime = Date.now() - start;
 
@@ -125,12 +124,14 @@ perfMetrics.push({ scene: '列表页加载', loadTime, budget: 1500 });
 
 ### 性能预算
 
-| 场景 | 预算 | 超过时 |
-|------|------|--------|
-| 页面首次加载 | 1500ms | 警告 |
-| 页面跳转+渲染 | 1000ms | 警告 |
-| 列表滚动加载 | 500ms | 警告 |
-| 表单提交响应 | 2000ms | 警告 |
+> **来源说明**: 官方体验评分要求首屏渲染 ≤500ms、页面切换 ≤300ms。以下为结合行业实践的**建议目标值**，非官方标准。
+
+| 场景 | 建议目标 | 官方参考 |
+|------|---------|---------|
+| 页面首次加载 | 1500ms | 官方: 首屏时间 ≤5秒 (`framework/性能.md`) |
+| 页面跳转+渲染 | 1000ms | 官方: 页面切换 ≤300ms（体验评分） |
+| 列表滚动加载 | 500ms | 无官方指标，社区最佳实践 |
+| 表单提交响应 | 2000ms | 无官方指标，用户体验研究建议 |
 
 ---
 

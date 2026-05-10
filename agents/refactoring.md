@@ -36,7 +36,7 @@
 | 重命名 | 命名不清晰(如 `data`, `item`, `temp`) | `data` → `matchListData` |
 | 简化条件 | 复杂if/else(>3层), 嵌套三元 | 用 map/switch 替代嵌套 if |
 | 消除魔法数字 | 硬编码常量(数字/字符串) | `3` → `MIN_PLAYER_COUNT` |
-| 提取Hook | 可复用逻辑(多页面共用) | 分页逻辑提取为 `usePagination` |
+| 提取Behavior | 可复用逻辑(多页面共用) | 分页逻辑提取为 `paginationBehavior` |
 | 合并重复 | 功能相同的不同实现 | 两个格式化函数统一 |
 
 ### 反模式识别
@@ -45,7 +45,7 @@
 
 | 反模式 | 表现 | 风险 | 重构方向 |
 |--------|------|------|---------|
-| Page上帝对象 | 一个Page文件>300行 | 难维护、难测试 | 提取组件+Hook |
+| Page上帝对象 | 一个Page文件>300行 | 难维护、难测试 | 提取组件+Behavior |
 | setData滥用 | 一次操作多次setData | 性能差、渲染抖动 | 合并setData |
 | 回调地狱 | 嵌套>3层的回调 | 可读性差、错误难处理 | async/await |
 | 全局状态泄漏 | app.globalData 随意写入 | 状态不可追踪 | 提取状态管理 |
@@ -90,7 +90,7 @@ refactor: utils/util.js - extract validateParams
   "keyFindings": [
     "util.js 3个函数提取公共校验逻辑",
     "match-card 组件拆分 props 定义",
-    "list.js 分页逻辑提取为 hook",
+    "list.js 分页逻辑提取为 behavior",
     "测试覆盖率从60%提升到75%"
   ],
   "testResults": {

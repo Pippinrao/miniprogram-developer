@@ -2,7 +2,6 @@
 skill: miniprogram-developer
 version: 1.0.0
 updated: 2026-05-10
-depends: [reference-devtools-usage]
 provides: [CLI, 命令行, 自动化构建, 脚本]
 difficulty: intermediate
 official: https://developers.weixin.qq.com/miniprogram/dev/devtools/cli.html
@@ -86,12 +85,17 @@ Write-Host "CLI路径: $cliPath"
 & "C:\Program Files (x86)\Tencent\微信web开发者工具\cli.bat" --version
 ```
 
-### 方式二：使用 npm 全局安装（仅部分功能）
+### 方式二：使用 CI 工具（推荐用于自动化流水线）
+
+对于 CI/CD 流水线中的自动化构建、预览、上传，推荐使用微信官方提供的 `miniprogram-ci` npm 包：
 
 ```bash
-npm install -g @wechat-miniprogram/cli
-# 注意：此方式功能有限，推荐使用方式一
+npm install miniprogram-ci --save-dev
 ```
+
+官方文档: https://developers.weixin.qq.com/miniprogram/dev/devtools/ci.html
+
+> 注意：`miniprogram-ci` 是纯 JavaScript 实现，无需安装微信开发者工具，可在 Linux CI 环境运行。但功能与 CLI 不完全对等，预览/上传需额外配置密钥。
 
 ### 方式三：便携版迁移
 
@@ -127,7 +131,9 @@ cli.bat open --project <项目路径> --lang zh
 
 ### 编译构建
 
-使用开发者工具的编译引擎校验项目，等同于 IDE 内置编译。
+> **适用场景**: 小游戏引擎项目。对于通用小程序编译校验，推荐使用 `miniprogram-ci` 或开发者工具内置编译。
+
+使用开发者工具的编译引擎校验项目。
 
 ```bash
 cli.bat engine build <项目路径> --logPath <日志路径> --lang zh
@@ -285,75 +291,34 @@ cli.bat quit
 
 ## 云函数部署
 
-云函数通过微信开发者工具或云开发 CLI 部署。
+微信开发者工具 CLI 提供 `cli cloud` 命令族用于云开发相关操作：
 
-### 云环境管理
-
-#### 列出云环境
-
+### 列出云环境
 ```bash
 cli.bat cloud env list --project <项目路径>
 ```
 
 ### 云函数管理
-
-#### 部署单个云函数
-
 ```bash
-cli.bat cloudfunction upload --project <项目路径> --name <云函数名称>
+# 上传云函数
+cli.bat cloud functions deploy --project <项目路径> --name <云函数名称>
+
+# 增量上传云函数
+cli.bat cloud functions inc-deploy --project <项目路径> --name <云函数名称>
+
+# 查看云函数信息
+cli.bat cloud functions info --project <项目路径> --name <云函数名称>
+
+# 下载云函数
+cli.bat cloud functions download --project <项目路径> --name <云函数名称>
+
+# 云函数列表
+cli.bat cloud functions list --project <项目路径>
 ```
 
-**示例：**
+> 以上 `cli cloud` 命令族的可用性取决于微信开发者工具版本（需较新版本支持）。在 CI/CD 流水线中，推荐使用 `@cloudbase/cli`（`tcb fn deploy`）实现跨平台自动化部署，因为它不依赖开发者工具的 GUI 环境。
 
-```bash
-cli.bat cloudfunction upload --project "D:\workspace\my-miniprogram" --name "match"
-```
-
-#### 增量上传云函数
-
-当云函数较大时，使用增量上传加快部署速度。
-
-```bash
-cli.bat cloudfunction inc-deploy --project <项目路径> --name <云函数名称>
-```
-
-#### 查看云函数详情
-
-获取云函数的配置信息。
-
-```bash
-cli.bat cloudfunction info --project <项目路径> --name <云函数名称>
-```
-
-#### 下载云函数
-
-将云函数代码下载到本地。
-
-```bash
-cli.bat cloudfunction download --project <项目路径> --name <云函数名称>
-```
-
-#### 云函数列表
-
-查看已部署的云函数：
-
-```bash
-cli.bat cloudfunction list --project <项目路径>
-```
-
-#### 云函数日志
-
-查看云函数调用日志：
-
-```bash
-cli.bat cloudfunction log --project <项目路径> --name <云函数名称> --count <条数>
-```
-
-**示例：**
-
-```bash
-cli.bat cloudfunction log --project "D:\workspace\my-miniprogram" --name "match" --count 50
-```
+官方文档: https://developers.weixin.qq.com/miniprogram/dev/wxcloud/guide/functions/getting-started.html
 
 ---
 

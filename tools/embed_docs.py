@@ -10,7 +10,6 @@
 
 import os
 
-os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 
 import argparse
@@ -27,7 +26,7 @@ from tqdm import tqdm
 
 # === 配置 ===
 CHUNK_MIN_CHARS = 200
-CHUNK_MAX_CHARS = 2000
+CHUNK_MAX_CHARS = 1500
 BATCH_SIZE = 32
 COLLECTION_NAME = "wechat_miniprogram_docs"
 BGE_QUERY_PREFIX = "为这个句子生成表示以用于检索相关文章："
@@ -209,6 +208,8 @@ def build_documents(docs_dir: Path) -> Tuple[List[str], List[dict], List[str]]:
     categories = {
         "framework": docs_dir / "framework",
         "design": docs_dir / "design",
+        "component": docs_dir / "component",
+        "api": docs_dir / "api",
     }
 
     for category, cat_dir in categories.items():
@@ -265,10 +266,14 @@ def build_index(
     db_dir: str,
     model_name: str,
     reset: bool = False,
+    offline: bool = False,
 ):
     """生成嵌入并存入 ChromaDB"""
     print(f"[INFO] 加载嵌入模型: {model_name}")
-    model = SentenceTransformer(model_name, local_files_only=True)
+    model_kwargs = {}
+    if offline:
+        model_kwargs["local_files_only"] = True
+    model = SentenceTransformer(model_name, **model_kwargs)
     dim = model.get_sentence_embedding_dimension()  # noqa: keep for older sentence-transformers compat
     print(f"[INFO] 嵌入维度: {dim}")
 
@@ -341,7 +346,15 @@ def main():
         action="store_true",
         help="删除旧索引后重建",
     )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="离线模式，不检查 HuggingFace 更新",
+    )
     args = parser.parse_args()
+
+    if args.offline:
+        os.environ["HF_HUB_OFFLINE"] = "1"
 
     script_dir = Path(__file__).parent.resolve()
 
@@ -369,7 +382,7 @@ def main():
 
     # 生成嵌入并存储
     count = build_index(
-        texts, metas, ids, db_dir, args.model, reset=args.reset
+        texts, metas, ids, db_dir, args.model, reset=args.reset, offline=args.offline
     )
     print(f"[SUCCESS] 完成! ChromaDB 中共 {count} 条记录")
     print(f"[INFO] 搜索工具: python {script_dir / 'search_docs.py'} <query>")

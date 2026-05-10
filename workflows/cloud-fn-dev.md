@@ -136,8 +136,8 @@ reference: ["official-docs/framework/云开发.md"]
 ### 错误处理验证
 - [ ] try-catch 包裹主逻辑
 - [ ] 数据库操作异常有 catch 处理
-- [ ] catch 返回 { code: -1, msg: '服务内部错误', error: err.message }
-- [ ] 不暴露敏感错误栈到前端（可记录到日志）
+- [ ] catch 返回 { code: -1, msg: '服务内部错误' }（不暴露内部错误详情）
+- [ ] 使用 console.error 记录完整错误到日志
 
 ### 返回格式验证
 - [ ] 成功返回 { code: 0, msg: 'success', data: {...} }
@@ -267,8 +267,7 @@ exports.main = async (event, context) => {
     console.error('[云函数名] 执行异常:', err);
     return {
       code: -1,
-      msg: '服务内部错误',
-      error: err.message
+      msg: '服务内部错误'
     };
   }
 };
@@ -283,4 +282,16 @@ exports.main = async (event, context) => {
 | 参数非法 | `-1` | `'参数xxx格式错误/超出范围'` | — |
 | 鉴权失败 | `-1` | `'未获取到用户身份'` / `'无权操作'` | — |
 | 资源不存在 | `-1` | `'资源不存在或已被删除'` | — |
-| 服务异常 | `-1` | `'服务内部错误'` | `error: err.message` |
+| 服务异常 | `-1` | `'服务内部错误'` | —（不返回敏感错误详情） |
+
+---
+
+## 错误处理
+
+| 场景 | 处理 |
+|------|------|
+| requirement-designer 返回的设计文档缺少云函数定义 | 报告主Agent，确认需求范围后重新设计 |
+| cloud-fn-builder 代码生成失败 | 检查设计文档完整性，补充缺失参数后重试（最多2次） |
+| 验收阶段鉴权/参数校验缺失 | 返回 cloud-fn-builder 补充校验逻辑 |
+| npm install 云函数依赖失败 | 检查 package.json 依赖版本，回退到兼容版本 |
+| 云函数本地调试报错 | 检查 Node.js 版本兼容性，提示用户确认环境 |

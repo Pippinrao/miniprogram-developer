@@ -2,7 +2,7 @@
 
 > 来源: https://developers.weixin.qq.com/miniprogram/dev/framework/ + https://developers.weixin.qq.com/miniprogram/design/
 > 爬取时间: 2026-05-10
-> 总页面: 415 (365 framework + 50 design)
+> 总页面: 391 (365 framework + 22 design + 1 api + 2 component + 1 index)
 
 ## 按开发场景索引
 

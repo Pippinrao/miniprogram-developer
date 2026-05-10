@@ -86,6 +86,18 @@ python tools/search_docs.py "颜色 字体 间距" --category design
 
 - **模型**: BAAI/bge-large-zh-v1.5（1024维）
 - **语言**: 专为中文优化
-- **运行**: 本地CPU推理，无需网络
+- **运行**: 本地CPU推理，无需网络（首次运行自动下载模型，约1.3GB）
 - **查询时**: 自动添加 BGE 查询前缀，无需手动处理
 - **存储**: ChromaDB 余弦相似度索引
+
+## 故障排查
+
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| `ModuleNotFoundError: No module named 'chromadb'` | 依赖未安装 | `pip install -r tools/requirements.txt` |
+| 首次运行卡住/慢 | 正在下载 BGE 模型（~1.3GB） | 等待下载完成；后续离线运行 |
+| HF Hub 限流警告 | 未设置 HF_TOKEN | `export HF_TOKEN=your_token` 或忽略（限流下仍可下载） |
+| `Collection not found` | ChromaDB 索引未构建 | 运行 `python tools/embed_docs.py` 构建索引 |
+| 搜索结果得分都 < 0.3 | 关键词不精准 | 调整关键词，用更具体的术语重试 |
+| `search_docs.py` 执行失败 | Python 版本 < 3.10 | 升级到 Python 3.10+ |
+| ChromaDB 版本不兼容 | 升级后索引格式变化 | 删除 `tools/chroma_db/` 目录后重新运行 `embed_docs.py` |

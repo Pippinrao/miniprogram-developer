@@ -19,7 +19,7 @@
   ├─ ► 阶段2: UI骨架构建 [子Agent: ui-page-builder]
   │     输入: { designDoc.pages, designDoc.components, designDoc.componentLib }
   │     加载: agents/ui-page-builder.md
-  │          + official-docs/framework/WXML相关.md
+  │          + official-docs/framework/WXML_模板.md
   │          + official-docs/design/设计.md
   │          + 组件库文档（如使用 WeUI/Vant/TDesign）
   │     输出: WXML/WXSS/JSON 骨架文件 + app.json 更新
@@ -149,7 +149,7 @@ reference: [
 
 子Agent启动时自动加载:
 - `agents/ui-page-builder.md` — UI构建Agent定义
-- `official-docs/framework/WXML相关.md` — WXML语法规范
+- `official-docs/framework/WXML_模板.md` — WXML语法规范
 - `official-docs/design/设计.md` — 设计规范
 - 组件库文档（根据 designDoc.componentLib 动态加载）
 
@@ -186,7 +186,7 @@ context: {
   }
 }
 reference: [
-  "official-docs/framework/WXML相关.md",
+  "official-docs/framework/WXML_模板.md",
   "official-docs/design/设计.md"
 ]
 ```
@@ -553,3 +553,16 @@ reference: [
 阶段3 → 专注 slots 渲染逻辑
 阶段4 → 增加"嵌套子组件"验收
 ```
+
+---
+
+## 错误处理
+
+| 场景 | 处理 |
+|------|------|
+| requirement-designer 设计文档缺少组件 contracts | 补充 properties/events/slots 定义后重试 |
+| ui-page-builder WXML/WXSS 生成失败 | 检查组件库模式表匹配，切换集成方式重试（最多2次） |
+| code-implementation TDD 循环失败（3次迭代后仍有失败） | 报告主Agent，展示失败日志，等待决策（继续/跳过/修改设计） |
+| 组件间样式冲突（styleIsolation 未生效） | 检查 styleIsolation 配置，添加 externalClasses 或调整为 isolated 模式 |
+| 组件注册后页面报 "Component not found" | 检查页面 .json 的 usingComponents 注册路径 |
+| 验收阶段组件与设计文档不一致 | 更新设计文档标注偏差，评估是否需要修复 |

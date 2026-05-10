@@ -2,7 +2,6 @@
 skill: miniprogram-developer
 version: 1.0.0
 updated: 2026-05-10
-depends: [reference-cli, reference-devtools-usage]
 provides: [CI/CD, GitHub Actions, 自动化测试, 部署, Jest, Automator]
 difficulty: intermediate
 official: https://developers.weixin.qq.com/miniprogram/dev/devtools/cicd.html
@@ -122,10 +121,8 @@ jobs:
         run: cli build-npm --project .
 
       - name: Preview to WeChat
-        env:
-          APP_ID: ${{ secrets.STAGING_APP_ID }}
         run: |
-          cli preview --project . --appid $APP_ID
+          cli preview --project .
 
   deploy-production:
     if: github.event.inputs.environment == 'production' || github.event_name == 'workflow_dispatch'
@@ -156,10 +153,9 @@ jobs:
 
       - name: Deploy to production
         env:
-          APP_ID: ${{ secrets.PROD_APP_ID }}
           VERSION: ${{ github.run_id }}
         run: |
-          cli upload --project . --appid $APP_ID -v $VERSION -d "Release $VERSION"
+          cli upload --project . --version $VERSION --description "Release $VERSION"
 ```
 
 ## 2. 自动化测试

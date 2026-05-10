@@ -2,7 +2,7 @@
 skill: miniprogram-developer
 version: 1.0.0
 updated: 2026-05-06
-depends: [reference-e2e-testing]
+depends: [e2e-testing]
 provides: [Minium, Python测试, 自动化测试, 自动化用例]
 difficulty: intermediate
 official: https://developers.weixin.qq.com/miniprogram/dev/devtools/mini.html
@@ -50,8 +50,8 @@ minium --version
 mkdir miniprogram-test
 cd miniprogram-test
 
-# 初始化 minium 配置
-minium -c .
+# 手动创建 minium 配置文件 (minium.config.json)
+# 参考下方"配置文件"章节
 ```
 
 ### 目录结构

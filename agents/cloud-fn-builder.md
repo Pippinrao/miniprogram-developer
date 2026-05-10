@@ -55,10 +55,10 @@ exports.main = async (event, context) => {
     };
 
   } catch (err) {
+    console.error('[云函数] 执行异常:', err);
     return {
       code: -1,
-      msg: '服务内部错误',
-      error: err.message
+      msg: '服务内部错误'
     };
   }
 };
@@ -73,7 +73,7 @@ exports.main = async (event, context) => {
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "latest"
+    "wx-server-sdk": "~3.0.0"
   }
 }
 ```
@@ -142,7 +142,7 @@ const result = await db.collection('collection_name')
 {
   "status": "success",
   "summary": "构建 login 云函数: index.js + package.json + config.json, 含 openid 校验",
-  "filesCreated": [
+  "filesChanged": [
     "cloudfunctions/login/index.js",
     "cloudfunctions/login/package.json",
     "cloudfunctions/login/config.json"

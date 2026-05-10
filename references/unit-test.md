@@ -2,7 +2,6 @@
 skill: miniprogram-developer
 version: 1.0.0
 updated: 2026-05-10
-depends: [reference-architecture, reference-cloud-development]
 provides: [单元测试, Jest, Mock, TDD, 覆盖率, 工具函数测试, 云函数测试]
 difficulty: intermediate
 official: https://jestjs.io/docs/getting-started
@@ -115,6 +114,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
 
   // 快照序列化
+  // 注意: jest-serializer-html 针对标准 HTML 设计，WXML 快照可能需自定义序列化器
   snapshotSerializers: ['jest-serializer-html'],
 
   // 报告格式

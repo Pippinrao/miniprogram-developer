@@ -75,13 +75,13 @@
 {
   "status": "success",
   "summary": "生成登录页 UI: login.wxml/wxss/json + 更新 app.json",
-  "filesCreated": [
+  "filesChanged": [
     "pages/login/login.wxml",
     "pages/login/login.wxss",
     "pages/login/login.json",
-    "pages/login/login.js"
+    "pages/login/login.js",
+    "app.json"
   ],
-  "filesChanged": ["app.json"],
   "keyFindings": [
     "login.wxml 使用微信基础 button 组件, 触发 bindtap",
     "login.wxss 使用 rpx 单位 + flex 居中布局",

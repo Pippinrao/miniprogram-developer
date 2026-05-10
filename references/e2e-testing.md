@@ -2,13 +2,15 @@
 skill: miniprogram-developer
 version: 1.0.0
 updated: 2026-05-10
-depends: [reference-devtools-usage, reference-device-automation]
+depends: [device-automation]
 provides: [E2E测试, Automator, Page Object, 断言, 数据驱动]
 difficulty: intermediate
 official: https://developers.weixin.qq.com/miniprogram/dev/devtools/automator.html
 ---
 
 > **环境准备**: 需要 `npm install miniprogram-automator` 安装依赖。微信开发者工具必须打开并启用自动化端口（设置 → 安全设置 → 服务端口）。
+
+> **API 兼容性说明**: miniprogram-automator 的 API 与标准 Web 自动化工具有所不同：`page.waitForNavigation()`、`element.isVisible()`、`page.waitForTimeout()` 等方法**不存在**。本文档中所有代码示例均已使用经过验证的替代方案（如 `page.waitFor(selector_or_ms)` 替代上述不存在的 API）。详见各代码示例中的注释。
 
 # 微信小程序 E2E 测试
 
@@ -63,10 +65,10 @@ await miniProgram.navigateBack();
 await miniProgram.switchTab('/pages/home/home');
 
 // 重新加载当前页
-await miniProgram.reLaunch('/pages/index/index');  // reload() 不存在，使用 reLaunch 替代
+await miniProgram.reLaunch('/pages/index/index');
 
 // 获取当前页面栈信息
-const pages = await miniProgram.pages();
+const pages = await miniProgram.pageStack();
 console.log(pages);
 ```
 
@@ -77,13 +79,13 @@ console.log(pages);
 await element.tap();
 
 // 长按元素
-await element.longPress();
+await element.longpress();
 
 // 输入文本
 await element.input('hello world');
 
-// 清空输入框
-await element.clear();
+// 清空输入框（clear 方法不存在，使用 input('') 替代）
+await element.input('');
 
 // 获取元素文本
 const text = await element.text();
@@ -95,23 +97,21 @@ const value = await element.attribute('value');
 const rect = await element.boundingClientRect();
 console.log(rect);
 
-// 判断元素是否可见（isVisible 不存在，使用 waitFor 替代）
-const visible = await page.waitFor('.selector', { timeout: 3000 }).then(() => true).catch(() => false);
+// 判断元素是否可见（使用 waitFor 超时判断）
+const visible = await miniProgram.page.waitFor('.selector', { timeout: 3000 }).then(() => true).catch(() => false);
 ```
 
 ### 滚动操作
 
 ```javascript
-// 滚动页面
-await miniProgram.page.scrollTo({
-  scrollTop: 1000
-});
+// 滚动页面 (pageScrollTo 是 MiniProgram 对象的方法)
+await miniProgram.pageScrollTo(1000);
 
-// 滚动到页面底部（scrollToBottom 不存在于 Automator）
-// 可使用 page.callMethod 实现: await miniProgram.page.callMethod('scrollTo', 0, 9999)
+// 滚动到页面底部
+// 可先获取页面高度再滚动
 
-// 滑动操作（swipe 不存在于 Automator，可使用 page.callMethod 或 scrollTop 实现）
-// 例如: await miniProgram.page.callMethod('scrollTo', 0, 100)
+// 滑动操作（swipe 不存在于 Automator）
+// 使用 page.callMethod 调用页面自定义滚动方法
 ```
 
 ### 延迟与等待
@@ -124,7 +124,7 @@ await miniProgram.page.waitFor('.selector', { timeout: 5000 });
 await miniProgram.page.waitFor(2000);  // waitForTimeout 不存在，使用 waitFor 替代
 
 // 等待导航完成
-await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+await miniProgram.page.waitFor('[data-testid="some-element"]')
 ```
 
 ## 元素定位
@@ -316,7 +316,7 @@ it('点击比赛卡片应跳转到详情页', async () => {
   await card.tap();
 
   // 3. 等待页面跳转完成
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 4. 验证当前页面路径
   expect(miniProgram.page.path).toBe('/pages/match/detail/detail');
@@ -332,7 +332,7 @@ it('点击卡片应传递正确的比赛ID到详情页', async () => {
   const card = await miniProgram.page.$('[data-testid="match-card-0"]');
   const cardId = await card.attribute('data-id'); // 假设卡片上有 data-id
   await card.tap();
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 验证目标页面路由参数
   const pageData = await miniProgram.page.data();
@@ -350,8 +350,8 @@ it('点击卡片应传递正确的比赛ID到详情页', async () => {
 // 验证从详情页返回列表页
 it('从详情页返回列表页应保持列表状态', async () => {
   // 进入详情页
-  await miniProgram.page.navigateTo('/pages/match/detail/detail');
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.navigateTo('/pages/match/detail/detail');
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 记录详情页数据
   const detailTitle = await miniProgram.page.$('.match-title');
@@ -364,7 +364,7 @@ it('从详情页返回列表页应保持列表状态', async () => {
   // 或使用系统返回
   // await miniProgram.navigateBack();
 
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 验证回到列表页
   expect(miniProgram.page.path).toBe('/pages/match/list/list');
@@ -388,7 +388,7 @@ it('点击"我的"Tab应切换到个人页', async () => {
   expect(miniProgram.page.path).toBe('/pages/mine/mine');
 
   // 验证页面栈被重置（Tab切换后应该只有1层）
-  const pages = await miniProgram.pages();
+  const pages = await miniProgram.pageStack();
   expect(pages.length).toBe(1);
 
   // 验证个人页核心元素可见（isVisible 不存在，使用 waitFor 替代）
@@ -402,16 +402,16 @@ it('点击"我的"Tab应切换到个人页', async () => {
 // 验证连续跳转后页面栈深度正确
 it('连续跳转后页面栈深度应正确', async () => {
   // 从首页 → 列表页
-  await miniProgram.page.navigateTo('/pages/match/list/list');
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.navigateTo('/pages/match/list/list');
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 从列表页 → 详情页
   const card = await miniProgram.page.$('[data-testid="match-card-0"]');
   await card.tap();
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 验证页面栈有3层: 首页 + 列表 + 详情
-  const pages = await miniProgram.pages();
+  const pages = await miniProgram.pageStack();
   expect(pages.length).toBe(3);
   expect(pages[0].path).toBe('/pages/index/index');
   expect(pages[1].path).toBe('/pages/match/list/list');
@@ -422,7 +422,7 @@ it('连续跳转后页面栈深度应正确', async () => {
   await miniProgram.page.waitFor(500);
 
   // 验证栈变为2层，当前页为列表页
-  const pages2 = await miniProgram.pages();
+  const pages2 = await miniProgram.pageStack();
   expect(pages2.length).toBe(2);
   expect(miniProgram.page.path).toBe('/pages/match/list/list');
 });
@@ -434,7 +434,7 @@ it('连续跳转后页面栈深度应正确', async () => {
 // 验证跳转到不存在页面时的表现
 it('跳转到不存在页面不应崩溃', async () => {
   try {
-    await miniProgram.page.navigateTo('/pages/notexist/notexist');
+    await miniProgram.navigateTo('/pages/notexist/notexist');
     await miniProgram.page.waitFor(1000);
 
     // 应停留在原页面
@@ -457,8 +457,8 @@ it('跳转到不存在页面不应崩溃', async () => {
 it('列表页跳转应在1秒内完成', async () => {
   const startTime = Date.now();
 
-  await miniProgram.page.navigateTo('/pages/match/list/list');
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.navigateTo('/pages/match/list/list');
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 等待关键元素渲染（说明首屏可用）
   await miniProgram.page.waitFor('[data-testid="match-card-0"]');
@@ -485,7 +485,7 @@ it('列表页选择第N项 → 详情页内容应对应正确的数据', async (
 
   // 点击进入详情
   await cards[targetIndex].tap();
-  await miniProgram.page.waitFor('[data-testid="some-element"]')  // waitForNavigation 不存在，使用 waitFor 替代;
+  await miniProgram.page.waitFor('[data-testid="some-element"]')
 
   // 详情页标题应匹配
   const detailTitle = await miniProgram.page.$('[data-testid="match-title"]');
@@ -538,8 +538,9 @@ tests/
 // page-objects/base-page.js
 
 class BasePage {
-  constructor(page) {
+  constructor(page, miniProgram) {
     this.page = page;
+    this.miniProgram = miniProgram;
   }
 
   // 等待页面加载
@@ -575,18 +576,14 @@ class BasePage {
     return await element.text();
   }
 
-  // 导航
+  // 导航 (使用 MiniProgram 对象的标准 API)
   async navigateTo(path) {
-    await this.page.evaluate((url) => {
-      wx.navigateTo({ url });
-    }, path);
+    await this.miniProgram.navigateTo(path);
     await this.waitForLoad();
   }
 
   async navigateBack() {
-    await this.page.evaluate(() => {
-      wx.navigateBack();
-    });
+    await this.miniProgram.navigateBack();
     await this.waitForLoad();
   }
 }
@@ -601,8 +598,8 @@ module.exports = BasePage;
 const BasePage = require('./base-page');
 
 class HomePage extends BasePage {
-  constructor(page) {
-    super(page);
+  constructor(page, miniProgram) {
+    super(page, miniProgram);
     this.selectors = {
       banner: '.banner',
       quickAction: '.quick-action',
@@ -652,8 +649,8 @@ module.exports = HomePage;
 const BasePage = require('./base-page');
 
 class MatchDetailPage extends BasePage {
-  constructor(page) {
-    super(page);
+  constructor(page, miniProgram) {
+    super(page, miniProgram);
     this.selectors = {
       title: '.match-title',
       status: '.match-status',
@@ -724,7 +721,7 @@ describe('比赛功能 E2E 测试', () => {
     miniProgram = await automator.launch({
       projectPath: '/path/to/project'
     });
-    homePage = new HomePage(miniProgram.page);
+    homePage = new HomePage(miniProgram.page, miniProgram);
   });
 
   afterAll(async () => {
@@ -744,7 +741,7 @@ describe('比赛功能 E2E 测试', () => {
 
     test('应该能导航到比赛详情', async () => {
       await homePage.clickMatchItem(0);
-      matchDetailPage = new MatchDetailPage(miniProgram.page);
+      matchDetailPage = new MatchDetailPage(miniProgram.page, miniProgram);
       const title = await matchDetailPage.getTitle();
       expect(title).toBeTruthy();
     });
@@ -753,7 +750,7 @@ describe('比赛功能 E2E 测试', () => {
   describe('比赛详情测试', () => {
     beforeEach(async () => {
       await homePage.clickMatchItem(0);
-      matchDetailPage = new MatchDetailPage(miniProgram.page);
+      matchDetailPage = new MatchDetailPage(miniProgram.page, miniProgram);
     });
 
     test('应该显示正确的状态', async () => {
@@ -858,7 +855,7 @@ async function runE2ETest() {
 
     // 3. 导航到比赛列表
     console.log('导航到比赛列表...');
-    await page.navigateTo('/pages/match/match');
+    await miniProgram.navigateTo('/pages/match/match');
     await page.waitFor('.match-list');
 
     // 4. 选择第一个比赛
@@ -910,7 +907,7 @@ runE2ETest();
 ### 页面导航后元素定位失败
 
 - 页面切换后需要重新获取元素引用
-- 使用 `page.waitFor('[data-testid="some-element"]')` 等待导航完成  <!-- waitForNavigation 不存在，使用 waitFor 替代 -->
+- 使用 `page.waitFor('[data-testid="some-element"]')` 等待导航完成
 - 在新页面中重新调用 `page.$()` 获取元素
 
 ### 测试不稳定

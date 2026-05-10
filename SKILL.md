@@ -7,7 +7,7 @@ description: >-
   and cross-platform development. Triggers on keywords: new page, add feature,
   debug bug, styling, performance, deploy, cloud function, component, routing,
   testing, cross-platform. UI design prioritizes mature component libraries
-  (WeChat Base / WeUI / Vant Weapp / TDesign). Knowledge base based on 415-page
+  (WeChat Base official / WeUI official). Also supports community libraries (Vant Weapp / TDesign). Knowledge base based on ~390-page
   official documentation, loaded on demand.
 license: Apache-2.0
 compatibility: Requires Python 3.10+, ChromaDB, WeChat DevTools
@@ -27,7 +27,7 @@ metadata:
 # 强制约束
 
 - 看到代码相关任务 → **必须**启动子Agent，不得自己做
-- 不得自己读取超过 3 个文件
+- 不得自己读取超过 5 个项目代码文件（官方文档和知识查询除外）
 - 不得自己分析代码逻辑
 - 不得自己编写或修改任何代码
 - 不得自己运行任何测试命令
@@ -48,8 +48,9 @@ metadata:
 | "有个bug"、"报错了"、"打不开"、"不显示"、"测试失败" | bugfix | `workflows/bugfix.md` |
 | "重构XXX"、"代码太乱"、"整理代码"、"优化结构" | refactor | `workflows/refactor.md` |
 | "线上挂了"、"紧急修复"、"生产环境出问题" | hotfix | `workflows/hotfix.md` |
-| "如何使用XXX"、"XXX怎么用"、"查XXX文档"、"XXX的API"、"XXX是什么"、"帮我了解XXX"、"查询XXX" | knowledge-lookup | `workflows/knowledge-lookup.md` |
-| "如何使用XXX"、"XXX怎么用"、"查XXX文档"、"XXX的API"、"XXX有哪些限制" | knowledge-lookup | `workflows/knowledge-lookup.md` |
+| "如何使用XXX"、"XXX怎么用"、"查XXX文档"、"XXX的API"、"XXX是什么"、"帮我了解XXX"、"查询XXX"、"如何选择XXX" | knowledge-lookup | `workflows/knowledge-lookup.md` |
+| "帮我 review 代码"、"代码审查"、"review 代码"、"CR"、"检查代码质量" | code-review | `workflows/code-review.md` |
+| "如何选择跨端框架"、"选型"、"技术选型"、"用什么框架"、"跨端对比"、"原生还是跨端" | tech-selection | `workflows/tech-selection.md` |
 
 ## 模糊需求处理
 
@@ -61,9 +62,16 @@ metadata:
 
 **绝不**在范围不明确时启动子Agent。
 
+当用户需求无法匹配任何工作流关键词时：
+1. 将用户需求映射到最接近的工作流
+2. 向用户确认："您的需求最接近 [工作流名]，是否按此流程处理？"
+3. 如用户否定 → 引导用户用更具体的关键词描述需求
+
 # 知识查询
 
 > **详细检索指南**: `references/knowledge-retrieval.md`
+
+> **注意**: 知识查询是唯一允许主Agent直接读取官方文档的场景。启动子Agent前，主Agent需先完成知识搜索，将结果通过 `searchResults` 传给子Agent。搜索工具不可用时降级为查阅 `FRAMEWORK_INDEX.md`。
 
 ## 语义搜索（优先）
 
@@ -79,6 +87,7 @@ python tools/search_docs.py "用户问题或需求关键词" --top 5
 
 | 需求 | 搜索命令 |
 |------|---------|
+| 项目初始化 | `python tools/search_docs.py "目录结构 项目配置 创建项目 注册小程序" --top 5` |
 | 页面/路由 | `python tools/search_docs.py "页面路由 navigateTo 传参" --top 5` |
 | 组件 | `python tools/search_docs.py "自定义组件 properties 生命周期" --top 5` |
 | 云开发 | `python tools/search_docs.py "云函数 调用 数据库" --top 5` |
@@ -91,6 +100,7 @@ python tools/search_docs.py "用户问题或需求关键词" --top 5
 | 设计规范 | `python tools/search_docs.py "无障碍设计 大屏适配" --category design --top 5` |
 | AI/AR | `python tools/search_docs.py "AI AR VisionKit" --top 5` |
 | 安全 | `python tools/search_docs.py "安全 隐私 鉴权" --top 5` |
+| 基础组件(form/picker等) | `python tools/search_docs.py "form picker button input" --top 5` |
 | 架构设计 | `python tools/search_docs.py "架构设计 宿主环境 渲染层 逻辑层" --top 5` |
 | 插件 | `python tools/search_docs.py "插件开发 使用插件 plugin" --top 5` |
 | 分包/多端 | `python tools/search_docs.py "分包加载 分包异步化 独立分包" --top 5` |
@@ -155,14 +165,19 @@ python tools/search_docs.py "用户问题或需求关键词" --top 5
 **主 → 子 (≤500 tokens)**:
 ```json
 {
-  "task": "任务类型",
+  "task": "code-analysis|test-design|test-execution|code-implementation|debugging|refactoring",
   "projectPath": "/abs/path",
   "scope": ["文件/目录"],
   "reference": ["知识文件"],
-  "context": { "上一阶段产物路径": "...", "用户确认": "..." },
-  "expectedOutput": { "fields": ["需要返回的字段"] }
+  "searchQuery": "从用户需求提取的搜索关键词",
+  "searchResults": ["official-docs/framework/命中文档1.md"],
+  "context": { "previousPhase": "前一阶段的摘要", "designDoc": "/path/to/design.md", "userApproval": "用户确认的内容" },
+  "mode": "ut|e2e|both|incremental（test-execution 专用）",
+  "expectedOutput": { "summary": true, "keyFindings": "≤5", "filesChanged": true, "testResults": true, "artifacts": true }
 }
 ```
+
+> 完整字段定义详见 `protocols/context-exchange.md`
 
 **子 → 主 (≤300 tokens)**:
 ```json
@@ -171,8 +186,9 @@ python tools/search_docs.py "用户问题或需求关键词" --top 5
   "summary": "一句话摘要",
   "filesChanged": ["路径列表"],
   "keyFindings": ["≤5条关键发现"],
-  "testResults": { "pass": 0, "fail": 0 },
-  "artifacts": ["产物路径"]
+  "testResults": { "pass": 0, "fail": 0, "skip": 0, "coverage": "N/A" },
+  "artifacts": ["产物路径"],
+  "nextAction": "建议的下一步"
 }
 ```
 

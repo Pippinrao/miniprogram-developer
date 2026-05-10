@@ -9,18 +9,16 @@
     python search_docs.py "路由配置" --category framework
 """
 
-import os
-
-os.environ.setdefault("HF_HUB_OFFLINE", "1")
-os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
-
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 import chromadb
 from sentence_transformers import SentenceTransformer
+
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 
 
 BGE_QUERY_PREFIX = "为这个句子生成表示以用于检索相关文章："
@@ -108,7 +106,7 @@ def main():
         "-c",
         type=str,
         default=None,
-        choices=["framework", "design"],
+        choices=["framework", "design", "component", "api"],
         help="按分类过滤",
     )
     parser.add_argument(
@@ -126,13 +124,16 @@ def main():
     parser.add_argument(
         "--offline",
         action="store_true",
-        default=True,
-        help="离线模式，不检查 HuggingFace 更新（默认启用）",
+        default=False,
+        help="离线模式，不检查 HuggingFace 更新",
     )
     parser.add_argument(
         "--json", "-j", action="store_true", help="以 JSON 格式输出"
     )
     args = parser.parse_args()
+
+    if args.offline:
+        os.environ["HF_HUB_OFFLINE"] = "1"
 
     script_dir = Path(__file__).parent.resolve()
     db_dir = Path(args.db_dir) if args.db_dir else find_db_dir(script_dir)
